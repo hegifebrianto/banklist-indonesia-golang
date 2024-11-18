@@ -38,7 +38,7 @@ func initDB() {
 	password := getEnv("DB_PASSWORD", "")
 	host := getEnv("DB_HOST", "localhost")
 	port := getEnv("DB_PORT", "3306")
-	database := getEnv("DB_DATABASE", "db-bank-indonesia")
+	database := getEnv("DB_DATABASE", "bank-indonesia")
 	driver = getEnv("DB_DRIVER", "mysql")
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", username, password, host, port, database)
@@ -104,7 +104,7 @@ func getItems(c *gin.Context, tableName, columnName string) {
 
 	log.Printf("Search query: %s, Page: %d, Limit: %d", searchQuery, page, limit)
 
-	query := fmt.Sprintf("SELECT bankid, %s FROM %s", columnName, tableName)
+	query := fmt.Sprintf("SELECT id, %s,city, swift_code FROM %s", columnName, tableName)
 	args := make([]interface{}, 0)
 
 	if searchQuery != "" {
@@ -112,7 +112,7 @@ func getItems(c *gin.Context, tableName, columnName string) {
 		args = append(args, "%"+searchQuery+"%")
 	}
 
-	query += " ORDER BY bankid ASC LIMIT ? OFFSET ?"
+	query += " ORDER BY id ASC LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 
 	if driver == "postgres" {
@@ -134,15 +134,19 @@ func getItems(c *gin.Context, tableName, columnName string) {
 	for rows.Next() {
 		var id int
 		var name string
-		if err := rows.Scan(&id, &name); err != nil {
+		var city string
+		var swiftCode string
+		if err := rows.Scan(&id, &name, &city, &swiftCode); err != nil {
 			log.Printf("Error scanning row: %v", err)
 			continue
 		}
 
 		if tableName == "banks" {
 			itemsBank = append(itemsBank, model.Bank{
-				ID:   id,
-				Name: name,
+				ID:        id,
+				Bank:      name,
+				City:      city,
+				SwiftCode: swiftCode,
 			})
 		} else {
 
@@ -167,7 +171,6 @@ func getItems(c *gin.Context, tableName, columnName string) {
 // banks godoc
 // @Summary banks
 // @Description banks
-// @Tags banks
 // @Accept json
 // @Produce json
 // @Router /banks [GET]
@@ -182,7 +185,70 @@ func getItems(c *gin.Context, tableName, columnName string) {
 // @Failure 214 {object} model.FailResponse             "Data Pengguna Tidak Ditemukan"
 // @Failure 500 {string} Internal Server Fatal Error
 func getBanks(c *gin.Context) {
-	getItems(c, "banks", "bankname")
+	getItems(c, "banks", "bank")
+}
+
+// @Tags banks
+// banks godoc
+// @Summary bank
+// @Description bank
+// @Param BankData body model.BankDataRequest true "Bank data"
+// @Accept json
+// @Produce json
+// @Router /bank [POST]
+// @Accepts json
+// @Produce json
+// @Success 200 {object} model.AddBanksDataResponse 	"List of Banks with total count"
+//
+// @Failure 206 {object} model.FailResponse             "Error lain"
+// @Failure 207 {object} model.FailResponse             "Gagal Login"
+// @Failure 209 {object} model.FailResponse             "Invalid JSON input"
+// @Failure 210 {object} model.FailResponse             "Error Middleware Internal"
+// @Failure 214 {object} model.FailResponse             "Data Pengguna Tidak Ditemukan"
+// @Failure 500 {string} Internal Server Fatal Error
+func addBank(c *gin.Context) {
+	log.Println("post add bank")
+	// var bank model.Bank
+	//init
+
+	// bankName := c.PostForm("bankName")
+	// bankCity := c.PostForm("bankCity")
+	// bankBranch := c.PostForm("bankBranch")
+	// bankSwiftCode := c.PostForm("bankSwiftCode")
+	var bank model.Bank
+	err := c.BindJSON(&bank)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// fmt.Println("coba", bank)
+	// log.Println("coba", bankName, bankCity, bankBranch, bankSwiftCode)
+	username := getEnv("DB_USERNAME", "root")
+	database := getEnv("DB_DATABASE", "bank-indonesia")
+	driver = getEnv("DB_DRIVER", "mysql")
+	db, err := sql.Open("mysql", username+"@tcp(127.0.0.1:3306)/"+database)
+	if err != nil {
+		fmt.Println("Err", err.Error())
+	}
+	defer db.Close()
+
+	result, err := db.Exec("INSERT INTO `banks` (`bank`, `city`, `branch`, `swift_code`) VALUES (?, ?, ?, ?)", bank.Bank, bank.City, bank.Branch, bank.SwiftCode)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get the last inserted ID
+	lastID, err := result.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
+	bank.ID = int(lastID)
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "success create post",
+		"data":    bank,
+	})
+
 }
 
 func convertToPostgres(query string) string {
@@ -198,7 +264,7 @@ func convertToPostgres(query string) string {
 	return query
 }
 
-// @title API for the get of Data sub district & district in Indonesia
+// @title API for the get of Data Bank SwiftCode in Indonesian
 // @version 1.0
 // @description This is a sample API documentation.
 // @contact.name API Support
@@ -238,6 +304,7 @@ func main() {
 
 	// router.GET("/swagger", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	router.GET("/banks", getBanks)
+	router.POST("/addbank", addBank)
 
 	log.Printf("Starting server on 0.0.0.0:%s", port)
 	router.Run("0.0.0.0:" + port)

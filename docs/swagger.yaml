@@ -1,13 +1,48 @@
 basePath: /api/v1
 definitions:
+  model.AddBanksDataResponse:
+    properties:
+      bank:
+        $ref: '#/definitions/model.Bank'
+      message:
+        example: success create post
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   model.Bank:
     properties:
-      bankname:
+      bank:
         example: BRI
+        type: string
+      branch:
+        example: Surabaya
+        type: string
+      city:
+        example: Surabaya
         type: string
       id:
         example: 1
         type: integer
+      swift_code:
+        example: BMRIDJA
+        type: string
+    type: object
+  model.BankDataRequest:
+    properties:
+      bank:
+        example: BRI
+        type: string
+      branch:
+        example: Surabaya
+        type: string
+      city:
+        example: Surabaya
+        type: string
+      swift_code:
+        example: BBRIDJA
+        type: string
     type: object
   model.BanksDataResponse:
     properties:
@@ -38,9 +73,56 @@ info:
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
-  title: API for the get of Data sub district & district in Indonesia
+  title: API for the get of Data Bank SwiftCode in Indonesian
   version: "1.0"
 paths:
+  /bank:
+    post:
+      consumes:
+      - application/json
+      description: bank
+      parameters:
+      - description: Bank data
+        in: body
+        name: BankData
+        required: true
+        schema:
+          $ref: '#/definitions/model.BankDataRequest'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: List of Banks with total count
+          schema:
+            $ref: '#/definitions/model.AddBanksDataResponse'
+        "206":
+          description: Error lain
+          schema:
+            $ref: '#/definitions/model.FailResponse'
+        "207":
+          description: Gagal Login
+          schema:
+            $ref: '#/definitions/model.FailResponse'
+        "209":
+          description: Invalid JSON input
+          schema:
+            $ref: '#/definitions/model.FailResponse'
+        "210":
+          description: Error Middleware Internal
+          schema:
+            $ref: '#/definitions/model.FailResponse'
+        "214":
+          description: Data Pengguna Tidak Ditemukan
+          schema:
+            $ref: '#/definitions/model.FailResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: bank
+      tags:
+      - banks
   /banks:
     get:
       consumes:
@@ -80,7 +162,6 @@ paths:
             type: string
       summary: banks
       tags:
-      - banks
       - banks
 swagger: "2.0"
 tags:

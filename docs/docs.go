@@ -23,6 +23,77 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/bank": {
+            "post": {
+                "description": "bank",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/json"
+                ],
+                "tags": [
+                    "banks"
+                ],
+                "summary": "bank",
+                "parameters": [
+                    {
+                        "description": "Bank data",
+                        "name": "BankData",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.BankDataRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of Banks with total count",
+                        "schema": {
+                            "$ref": "#/definitions/model.AddBanksDataResponse"
+                        }
+                    },
+                    "206": {
+                        "description": "Error lain",
+                        "schema": {
+                            "$ref": "#/definitions/model.FailResponse"
+                        }
+                    },
+                    "207": {
+                        "description": "Gagal Login",
+                        "schema": {
+                            "$ref": "#/definitions/model.FailResponse"
+                        }
+                    },
+                    "209": {
+                        "description": "Invalid JSON input",
+                        "schema": {
+                            "$ref": "#/definitions/model.FailResponse"
+                        }
+                    },
+                    "210": {
+                        "description": "Error Middleware Internal",
+                        "schema": {
+                            "$ref": "#/definitions/model.FailResponse"
+                        }
+                    },
+                    "214": {
+                        "description": "Data Pengguna Tidak Ditemukan",
+                        "schema": {
+                            "$ref": "#/definitions/model.FailResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/banks": {
             "get": {
                 "description": "banks",
@@ -34,7 +105,6 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "banks",
                     "banks"
                 ],
                 "summary": "banks",
@@ -86,16 +156,65 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "model.AddBanksDataResponse": {
+            "type": "object",
+            "properties": {
+                "bank": {
+                    "$ref": "#/definitions/model.Bank"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "success create post"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "model.Bank": {
             "type": "object",
             "properties": {
-                "bankname": {
+                "bank": {
                     "type": "string",
                     "example": "BRI"
+                },
+                "branch": {
+                    "type": "string",
+                    "example": "Surabaya"
+                },
+                "city": {
+                    "type": "string",
+                    "example": "Surabaya"
                 },
                 "id": {
                     "type": "integer",
                     "example": 1
+                },
+                "swift_code": {
+                    "type": "string",
+                    "example": "BMRIDJA"
+                }
+            }
+        },
+        "model.BankDataRequest": {
+            "type": "object",
+            "properties": {
+                "bank": {
+                    "type": "string",
+                    "example": "BRI"
+                },
+                "branch": {
+                    "type": "string",
+                    "example": "Surabaya"
+                },
+                "city": {
+                    "type": "string",
+                    "example": "Surabaya"
+                },
+                "swift_code": {
+                    "type": "string",
+                    "example": "BBRIDJA"
                 }
             }
         },
@@ -142,7 +261,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "API for the get of Data sub district & district in Indonesia",
+	Title:            "API for the get of Data Bank SwiftCode in Indonesian",
 	Description:      "This is a sample API documentation.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
