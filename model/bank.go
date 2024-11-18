@@ -6,7 +6,7 @@ type Bank struct {
 	Bank      string `json:"bank" example:"BRI"`
 	City      string `json:"city" example:"Surabaya"`
 	Branch    string `json:"branch" example:"Surabaya"`
-	SwiftCode string `json:"swift_code" example:"BMRIDJA"`
+	SwiftCode string `json:"swift_code" example:"BBRIDJA"`
 }
 
 // ProvinceDataResponse represents the response format for the province data.

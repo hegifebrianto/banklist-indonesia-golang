@@ -26,7 +26,7 @@ definitions:
         example: 1
         type: integer
       swift_code:
-        example: BMRIDJA
+        example: BBRIDJA
         type: string
     type: object
   model.BankDataRequest:

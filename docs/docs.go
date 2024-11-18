@@ -193,7 +193,7 @@ const docTemplate = `{
                 },
                 "swift_code": {
                     "type": "string",
-                    "example": "BMRIDJA"
+                    "example": "BBRIDJA"
                 }
             }
         },
